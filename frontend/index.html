@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FanArena - Fan Token Platform</title>
+  <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0c0a14;
+      --sidebar: #120e1c;
+      --card: #1a1428;
+      --card-hover: #221a34;
+      --accent: #a855f7;
+      --orange: #f97316;
+      --pink: #ec4899;
+      --teal: #14b8a6;
+      --text: #f8f7ff;
+      --text-secondary: #c4b5fd;
+      --muted: #8b7bb8;
+      --border: #2a2040;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      display: flex;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      padding: 0 0.5rem;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+    .logo-text {
+      font-weight: 800;
+      font-size: 1.15rem;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .logo-sub {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+      transition: all 0.15s;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: linear-gradient(90deg, rgba(168,85,247,0.25), transparent);
+      color: white;
+    }
+    .nav-item.active {
+      background: linear-gradient(90deg, #a855f7, #7c3aed);
+      color: white;
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(249,115,22,0.15));
+      border-radius: 12px;
+      padding: 1rem;
+      border: 1px solid rgba(168,85,247,0.3);
+    }
+    .main {
+      flex: 1;
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .search {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 1rem;
+      color: var(--text);
+      width: 320px;
+    }
+    .wallet-btn {
+      background: linear-gradient(135deg, #a855f7, #f97316);
+      color: white;
+      border: none;
+      padding: 0.65rem 1.2rem;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .hero {
+      background: linear-gradient(135deg, #1a1028 0%, #2a1540 50%, #1a1028 100%);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .hero h1 {
+      font-size: 2.2rem;
+      margin: 0 0 0.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p { color: var(--text-secondary); margin: 0 0 1.25rem; max-width: 420px; }
+    .hero-btn {
+      background: linear-gradient(135deg, #a855f7, #f97316);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .pinned-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      display: flex;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #a855f7, #f97316);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+    .stats {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+    }
+    .stats div strong { display: block; color: white; }
+    .tournaments {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .tour-card {
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .tour-img {
+      height: 100px;
+      background: linear-gradient(135deg, #3b0764, #7c2d12);
+    }
+    .tour-body { padding: 0.85rem; }
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 0.4rem;
+    }
+    .badge.live { background: #22c55e; color: #052e16; }
+    .badge.upcoming { background: #f97316; color: #431407; }
+    .badge.soon { background: #ec4899; color: #500724; }
+    .admin-panel {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+      border: 1px dashed var(--accent);
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin: 0.3rem 0;
+      background: #0c0a14;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: white;
+    }
+    .hidden { display: none !important; }
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">F</div>
+      <div>
+        <div class="logo-text">FanArena</div>
+        <div class="logo-sub">FAN TOKEN PLATFORM</div>
+      </div>
+    </div>
+    <a class="nav-item active" href="#" data-tab="dashboard">Dashboard</a>
+    <a class="nav-item" href="#" data-tab="creators">Explore Creators</a>
+    <a class="nav-item" href="#" data-tab="tournaments">Tournaments</a>
+    <a class="nav-item" href="#" data-tab="tokens">Fan Tokens</a>
+    <a class="nav-item" href="#" data-tab="marketplace">Marketplace</a>
+    <a class="nav-item" href="#" data-tab="portfolio">My Portfolio</a>
+    <a class="nav-item" href="#" data-tab="rewards">Rewards</a>
+    <a class="nav-item" href="#" data-tab="leaderboard">Leaderboard</a>
+    <div class="sidebar-footer">
+      <strong>LEVEL UP YOUR FANDOM</strong>
+      <p style="font-size:0.75rem; color:var(--text-secondary); margin:0.4rem 0;">Hold. Vote. Earn. Win exclusive rewards.</p>
+      <button class="wallet-btn" style="width:100%; margin-top:0.5rem;" onclick="document.querySelector('[data-tab=rewards]').click()">View Rewards →</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <input class="search" placeholder="Search creators, tournaments...">
+      <div>
+        <span id="pointsDisplay" style="margin-right:0.75rem; color:var(--orange); font-weight:700;">Points: 0</span>
+        <span id="walletStatus" style="margin-right:0.75rem; color:var(--muted);">Not connected</span>
+        <button id="connectBtn" class="wallet-btn">Connect Wallet</button>
+        <button id="disconnectBtn" class="wallet-btn hidden" style="background:#333;">Disconnect</button>
+      </div>
+    </div>
+
+    <div id="tab-dashboard">
+      <div class="hero">
+        <h1>BACK YOUR CREATORS.<br><span>OWN THE HYPE.</span></h1>
+        <p>Fan Tokens power your voice, unlock rewards, and turn fandom into real impact.</p>
+        <button class="hero-btn" onclick="document.querySelector('[data-tab=creators]').click()">Explore Creators →</button>
+      </div>
+
+      <div class="section-title">📌 PINNED CREATOR</div>
+      <div id="pinnedCard" class="pinned-card">
+        <div class="avatar">🎮</div>
+        <div style="flex:1;">
+          <h3 style="margin:0 0 0.25rem;">No pinned creator yet</h3>
+          <p style="color:var(--text-secondary); margin:0; font-size:0.9rem;">Unlock admin to set one.</p>
+        </div>
+      </div>
+
+      <div class="section-title">🎮 CREATOR TOP GAMES</div>
+      <div id="gamesContainer" class="tournaments"></div>
+
+      <div class="section-title" style="margin-top:1.5rem;">🏆 TOURNAMENTS</div>
+      <div class="tournaments">
+        <p style="color:var(--muted); grid-column:1/-1;">No tournaments yet. Coming soon.</p>
+      </div>
+    </div>
+
+    <div id="tab-creators" class="hidden">
+      <div class="section-title">EXPLORE CREATORS</div>
+      <div id="creatorsList" class="tournaments"></div>
+    </div>
+
+    <div id="tab-tournaments" class="hidden">
+      <div class="section-title">🏆 TOURNAMENTS</div>
+      <div id="tournamentGate" style="background:var(--card); border-radius:12px; padding:1.5rem; border:1px solid var(--border); text-align:center;">
+        <h3 style="margin:0 0 0.5rem;">Need 2 Points to Join</h3>
+        <p style="color:var(--text-secondary); margin:0 0 1rem;">Earn points by trading on Strike.</p>
+        <p id="currentPointsMsg" style="color:var(--orange); font-weight:700;">You have 0 points</p>
+        <button class="wallet-btn" onclick="document.querySelector('[data-tab=rewards]').click()">Earn Points →</button>
+      </div>
+      <div id="tournamentContent" class="hidden" style="margin-top:1rem;">
+        <p style="color:var(--muted);">No tournaments yet. Coming soon.</p>
+      </div>
+    </div>
+
+    <div id="tab-tokens" class="hidden">
+      <h2>Fan Tokens</h2>
+      <p style="color:var(--muted)">Fan token details will appear here.</p>
+    </div>
+
+    <div id="tab-marketplace" class="hidden">
+      <h2>Marketplace</h2>
+      <p style="color:var(--muted)">Coming soon.</p>
+    </div>
+
+    <div id="tab-portfolio" class="hidden">
+      <h2>My Portfolio</h2>
+      <p style="color:var(--muted)">Connect wallet to see your portfolio.</p>
+    </div>
+
+    <div id="tab-rewards" class="hidden">
+      <div class="section-title">⚡ EARN POINTS — LIVE STRIKE INTEGRATION</div>
+      <div style="background:var(--card); border-radius:12px; padding:1.5rem; border:1px solid var(--border); margin-bottom:1rem;">
+        <h3 style="margin:0 0 0.5rem;">Trade on Strike to Earn Points</h3>
+        <p style="color:var(--text-secondary); margin:0 0 1rem;">Trade perps on Strike Finance. Points are earned only after real trading activity.</p>
+        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin-bottom:1rem;">
+          <a id="tradeLink" href="https://app.strikefinance.org" target="_blank" class="wallet-btn" style="text-decoration:none; display:inline-block;">Trade on Strike →</a>
+          <button id="refreshStrikeBtn" class="wallet-btn" style="background:#333;">Refresh Data</button>
+        </div>
+        <p id="pointsStatus" style="margin:0.5rem 0; color:var(--orange); font-weight:700;">Current points: 0</p>
+        <div id="claimSection" class="hidden" style="margin-top:1rem;">
+          <p style="font-size:0.85rem; color:var(--text-secondary); margin:0 0 0.5rem;">Confirm you completed a trade on Strike:</p>
+          <button id="confirmTradeBtn" class="wallet-btn">Confirm Trade (+1 Point)</button>
+          <p id="confirmNote" style="font-size:0.75rem; color:var(--muted); margin:0.4rem 0 0;">Available once after visiting Strike.</p>
+        </div>
+        <p id="tradeHint" style="font-size:0.8rem; color:var(--muted); margin-top:0.75rem;">Click “Trade on Strike” first to unlock point confirmation.</p>
+      </div>
+
+      <div class="section-title">LIVE STRIKE DATA</div>
+      <div id="strikeData" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+        <div class="tour-card" style="padding:1rem;">
+          <div style="font-size:0.75rem; color:var(--muted);">BTC Mark Price</div>
+          <div id="btcPrice" style="font-size:1.25rem; font-weight:700;">Loading...</div>
+        </div>
+        <div class="tour-card" style="padding:1rem;">
+          <div style="font-size:0.75rem; color:var(--muted);">ETH Mark Price</div>
+          <div id="ethPrice" style="font-size:1.25rem; font-weight:700;">Loading...</div>
+        </div>
+        <div class="tour-card" style="padding:1rem;">
+          <div style="font-size:0.75rem; color:var(--muted);">Top Copy Traders</div>
+          <div id="copyCount" style="font-size:1.25rem; font-weight:700;">Loading...</div>
+        </div>
+      </div>
+      <div id="strikeTraders" style="font-size:0.85rem; color:var(--text-secondary);"></div>
+
+      <div class="section-title" style="margin-top:1.5rem;">REWARDS</div>
+      <p style="color:var(--muted)">More rewards coming soon.</p>
+    </div>
+
+    <div id="tab-leaderboard" class="hidden">
+      <h2>Leaderboard</h2>
+      <p style="color:var(--muted)">Leaderboard coming soon.</p>
+    </div>
+
+    <!-- Admin -->
+    <section style="margin-top:2rem;">
+      <h2 style="font-size:1rem;">Owner Access</h2>
+      <p style="font-size:0.85rem; color:var(--muted);">Enter security key (demo: <code>fanarena-owner-2026</code>)</p>
+      <input type="password" id="securityKey" placeholder="Security key">
+      <button id="unlockAdmin" class="wallet-btn">Unlock Admin</button>
+      <div id="adminPanel" class="admin-panel hidden">
+        <h3>Set Pinned Creator</h3>
+        <input id="pinName" placeholder="Creator Name">
+        <input id="pinBio" placeholder="Short Bio">
+        <input id="pinRemix" placeholder="Remix Profile URL">
+        <button id="setPinnedBtn" class="wallet-btn">Set Pinned</button>
+        <hr style="border-color:var(--border); margin:1rem 0;">
+        <h3>Add Top Game</h3>
+        <input id="gameTitle" placeholder="Game Title">
+        <input id="gameUrl" placeholder="Game URL">
+        <input id="gameDesc" placeholder="Description">
+        <button id="addGameBtn" class="wallet-btn">Add Game</button>
+        <div id="adminGamesList" style="margin-top:0.5rem; font-size:0.8rem;"></div>
+        <div id="adminStatus"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API = 'http://localhost:3001/api';
+    let currentWallet = null;
+
+    // Points system (backend)
+    async function fetchPoints() {
+      if (!currentWallet) return 0;
+      try {
+        const res = await fetch(`${API}/points/${currentWallet}`);
+        const data = await res.json();
+        return data.points || 0;
+      } catch {
+        return 0;
+      }
+    }
+
+    async function updatePointsUI() {
+      const pts = await fetchPoints();
+      document.getElementById('pointsDisplay').textContent = 'Points: ' + pts;
+      const status = document.getElementById('pointsStatus');
+      if (status) status.textContent = 'Current points: ' + pts;
+      const msg = document.getElementById('currentPointsMsg');
+      if (msg) msg.textContent = 'You have ' + pts + ' points';
+      const gate = document.getElementById('tournamentGate');
+      const content = document.getElementById('tournamentContent');
+      if (gate && content) {
+        if (pts >= 2) {
+          gate.classList.add('hidden');
+          content.classList.remove('hidden');
+        } else {
+          gate.classList.remove('hidden');
+          content.classList.add('hidden');
+        }
+      }
+    }
+
+    // Trade confirmation — only awards after backend verification
+    document.getElementById('confirmTradeBtn')?.addEventListener('click', async () => {
+      if (!currentWallet) return alert('Connect wallet first');
+      try {
+        const verify = await fetch(`${API}/strike/verify-trade`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ wallet: currentWallet })
+        }).then(r => r.json());
+
+        if (!verify.verified) {
+          alert(verify.message || 'No verified trade found. Points are only awarded after real Strike trades.');
+          return;
+        }
+
+        await fetch(`${API}/points/award`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ wallet: currentWallet, amount: 1, tradeId: Date.now().toString() })
+        });
+        await updatePointsUI();
+        alert('+1 Point awarded');
+      } catch (e) {
+        alert('Error contacting backend');
+      }
+    });
+
+    // Wallet connect stub (replace with real wallet)
+    document.getElementById('connectBtn').onclick = async () => {
+      currentWallet = '0x12...abcd'; // replace with real address
+      document.getElementById('walletStatus').textContent = currentWallet;
+      document.getElementById('connectBtn').classList.add('hidden');
+      document.getElementById('disconnectBtn').classList.remove('hidden');
+      await updatePointsUI();
+    };
+    document.getElementById('disconnectBtn').onclick = () => {
+      currentWallet = null;
+      document.getElementById('walletStatus').textContent = 'Not connected';
+      document.getElementById('connectBtn').classList.remove('hidden');
+      document.getElementById('disconnectBtn').classList.add('hidden');
+      updatePointsUI();
+    };
+
+    // Live Strike data
+    async function loadStrikeData() {
+      try {
+        // Mark prices
+        const priceRes = await fetch('https://api.strikefinance.org/price/v2/markPrice');
+        if (priceRes.ok) {
+          const prices = await priceRes.json();
+          const btc = prices.find(p => p.symbol === 'BTC-USD' || p.s === 'BTC-USD');
+          const eth = prices.find(p => p.symbol === 'ETH-USD' || p.s === 'ETH-USD');
+          if (btc) document.getElementById('btcPrice').textContent = '$' + (parseFloat(btc.markPrice || btc.p || 0)).toLocaleString();
+          if (eth) document.getElementById('ethPrice').textContent = '$' + (parseFloat(eth.markPrice || eth.p || 0)).toLocaleString();
+        }
+      } catch (e) {
+        document.getElementById('btcPrice').textContent = '—';
+        document.getElementById('ethPrice').textContent = '—';
+      }
+
+      try {
+        // Copy traders
+        const tradersRes = await fetch('https://api.strikefinance.org/v2/copy/discover?limit=5&platform=strike');
+        if (tradersRes.ok) {
+          const data = await tradersRes.json();
+          const list = data.data || data.traders || [];
+          document.getElementById('copyCount').textContent = list.length + ' active';
+          const container = document.getElementById('strikeTraders');
+          if (list.length) {
+            container.innerHTML = '<strong>Top Strike Traders:</strong><br>' + list.slice(0, 3).map(t => 
+              `• ${t.nickname || t.address?.slice(0,8) || 'Trader'} — Score: ${t.copy_score || '—'}`
+            ).join('<br>');
+          } else {
+            container.textContent = 'No public trader data available.';
+          }
+        }
+      } catch (e) {
+        document.getElementById('copyCount').textContent = '—';
+        document.getElementById('strikeTraders').textContent = 'Unable to load trader data.';
+      }
+    }
+
+    document.getElementById('refreshStrikeBtn')?.addEventListener('click', loadStrikeData);
+
+    // Tab switching
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+        const tab = item.dataset.tab;
+        document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById('tab-' + tab);
+        if (target) target.classList.remove('hidden');
+      });
+    });
+    let isAdmin = false;
+
+    document.getElementById('unlockAdmin').onclick = () => {
+      if (document.getElementById('securityKey').value === OWNER_KEY) {
+        isAdmin = true;
+        document.getElementById('adminPanel').classList.remove('hidden');
+        alert("Admin unlocked");
+      } else alert("Invalid key");
+    };
+
+    // Default pinned creator + top game
+    const DEFAULT_PINNED = {
+      name: "Andrei RPK",
+      bio: "Building games on @RemixGG_ 🎮 ➡️ https://remix.gg/@andrei_rpk",
+      remix: "https://remix.gg/@andrei_rpk"
+    };
+    const DEFAULT_GAMES = [
+      {
+        title: "Endgame Legends",
+        url: "https://remix.gg/g/endgame-legends",
+        desc: "Choose your legendary hero and defend a ruined compound from an invading alien army. Co-op mode available."
+      }
+    ];
+
+    function getPinned() {
+      const stored = localStorage.getItem('fa_pinned');
+      if (stored) return JSON.parse(stored);
+      localStorage.setItem('fa_pinned', JSON.stringify(DEFAULT_PINNED));
+      return DEFAULT_PINNED;
+    }
+    function getGames() {
+      const stored = localStorage.getItem('fa_games');
+      if (stored) return JSON.parse(stored);
+      localStorage.setItem('fa_games', JSON.stringify(DEFAULT_GAMES));
+      return DEFAULT_GAMES;
+    }
+
+    function renderPinned() {
+      const d = getPinned();
+      const el = document.getElementById('pinnedCard');
+      if (!d) {
+        el.innerHTML = `<div class="avatar">🎮</div><div><h3 style="margin:0">No pinned creator</h3><p style="color:var(--text-secondary);margin:0">Set one in admin.</p></div>`;
+        return;
+      }
+      el.innerHTML = `
+        <div class="avatar">🎮</div>
+        <div style="flex:1">
+          <h3 style="margin:0 0 0.25rem">${d.name} <span style="color:#22c55e">●</span></h3>
+          <p style="color:var(--text-secondary); margin:0 0 0.5rem; font-size:0.9rem">${d.bio}</p>
+          <div class="stats">
+            <div><strong>—</strong>Followers</div>
+            <div><strong>—</strong>Holders</div>
+          </div>
+          <div style="margin-top:0.75rem">
+            <button class="wallet-btn" onclick="window.open('${d.remix}','_blank')">View Profile</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCreators() {
+      const pinned = getPinned();
+      const list = document.getElementById('creatorsList');
+      if (!list) return;
+      if (!pinned) {
+        list.innerHTML = '<p style="color:var(--muted)">No creators yet.</p>';
+        return;
+      }
+      list.innerHTML = `
+        <div class="tour-card">
+          <div class="tour-img" style="background:linear-gradient(135deg,#4c1d95,#9a3412);"></div>
+          <div class="tour-body">
+            <div style="font-weight:700">${pinned.name}</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin:0.3rem 0">${pinned.bio}</div>
+            <button class="wallet-btn" style="margin-top:0.5rem; font-size:0.8rem;" onclick="window.open('${pinned.remix}','_blank')">View Profile</button>
+          </div>
+        </div>
+      `;
+    }
+    function renderGames() {
+      const games = getGames();
+      const c = document.getElementById('gamesContainer');
+      if (!games.length) {
+        c.innerHTML = '<p style="color:var(--muted)">No games added yet.</p>';
+        return;
+      }
+      c.innerHTML = games.map(g => `
+        <div class="tour-card">
+          <div class="tour-img" style="background:linear-gradient(135deg,#4c1d95,#9a3412);"></div>
+          <div class="tour-body">
+            <span class="badge live">LIVE</span>
+            <div style="font-weight:700">${g.title}</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin:0.3rem 0">${g.desc || ''}</div>
+            <div style="margin-top:0.5rem; position:relative; width:100%; padding-top:56.25%; border-radius:8px; overflow:hidden;">
+              <iframe src="${g.url}?embed=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allow="fullscreen;autoplay" allowfullscreen loading="lazy"></iframe>
+            </div>
+            <a href="${g.url}" target="_blank" style="color:#a855f7; font-size:0.8rem; display:inline-block; margin-top:0.5rem">Open full game →</a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAdminGames() {
+      const games = getGames();
+      const list = document.getElementById('adminGamesList');
+      if (!list) return;
+      list.innerHTML = games.map((g,i) => `<div>${g.title} <button onclick="removeGame(${i})" style="background:#333;color:white;border:none;padding:0.2rem 0.4rem;border-radius:4px;cursor:pointer">X</button></div>`).join('');
+    }
+
+    window.removeGame = i => {
+      const g = getGames(); g.splice(i,1);
+      localStorage.setItem('fa_games', JSON.stringify(g));
+      renderGames(); renderAdminGames();
+    };
+
+    document.getElementById('setPinnedBtn').onclick = () => {
+      if (!isAdmin) return;
+      const name = document.getElementById('pinName').value.trim();
+      const bio = document.getElementById('pinBio').value.trim();
+      const remix = document.getElementById('pinRemix').value.trim();
+      if (!name || !remix) return alert("Name + URL required");
+      localStorage.setItem('fa_pinned', JSON.stringify({name, bio, remix}));
+      renderPinned();
+      renderCreators();
+      document.getElementById('adminStatus').innerHTML = '<div style="color:#22c55e;margin-top:0.5rem">Pinned updated!</div>';
+    };
+
+    document.getElementById('addGameBtn').onclick = () => {
+      if (!isAdmin) return;
+      const title = document.getElementById('gameTitle').value.trim();
+      const url = document.getElementById('gameUrl').value.trim();
+      const desc = document.getElementById('gameDesc').value.trim();
+      if (!title || !url) return alert("Title + URL required");
+      const g = getGames();
+      g.push({title, url, desc});
+      localStorage.setItem('fa_games', JSON.stringify(g));
+      renderGames(); renderAdminGames();
+      document.getElementById('gameTitle').value = document.getElementById('gameUrl').value = document.getElementById('gameDesc').value = '';
+    };
+
+    renderPinned();
+    renderGames();
+    renderCreators();
+    renderAdminGames();
+    updatePointsUI();
+    loadStrikeData();
+  </script>
+</body>
+</html>
